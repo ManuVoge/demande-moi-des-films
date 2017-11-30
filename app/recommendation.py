@@ -56,18 +56,36 @@ class Recommendation:
 
     # Display the recommendation for a user
     def make_recommendation(self, user):
-        movie = choice(list(self.movies.values())).title
+        tableau = self.compute_all_similarities(user)
+        res = tableau.sort().pop()
+        return res.good_ratings
 
-        return "Vos recommandations : " + ", ".join([movie])
 
     # Compute the similarity between two users
     @staticmethod
     def get_similarity(user_a, user_b):
-        return 1
+        score = 0
+        for element in user_a.good_ratings:
+            if element in user_b.good_ratings:
+                score ++
+            elif element in user_b.bad_ratings:
+                score --
+        for element in user_a.bad_ratings:
+            if element in user_b.good_ratings:
+                score --
+            elif element in user_b.bad_ratings:
+                score ++
+        score = score/min(get_user_norm(user_a), get_user_norm(user_b))
+        return score
 
     # Compute the similarity between a user and all the users in the data set
     def compute_all_similarities(self, user):
-        return []
+        tableau = []
+        for element in self.test_users.values():
+            tableau.append(get_similarity(element, user))
+        tableau.pop()
+
+        return tableau
 
     @staticmethod
     def get_best_movies_from_users(users):
@@ -79,7 +97,7 @@ class Recommendation:
 
     @staticmethod
     def get_user_norm(user):
-        return 1
+        return len(user.good_ratings) + len(user.bad_ratings)
 
     # Return a vector with the normalised ratings of a user
     @staticmethod
